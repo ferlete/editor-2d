@@ -142,6 +142,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
 
   const [shapes, setShapes] = useState<DrawableShape[]>([]);
   const [projectParts, setProjectParts] = useState<IProjectPart[]>([]);
+  const [initialProjectParts, setInitialProjectParts] = useState<IProjectPart[]>([]);
   const [isLoadingParts, setIsLoadingParts] = useState(true);
   const [collisionMargin, setCollisionMargin] = useState(5); // Margem de 5mm por padrão
   const [interaction, setInteraction] = useState<Interaction>(null);
@@ -169,6 +170,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
         console.error("Error fetching project parts:", result.message);
       } else {
         setProjectParts(result);
+        setInitialProjectParts(result);
       }
     })
     .finally(() => setIsLoadingParts(false));
@@ -194,6 +196,12 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
       setHistoryIndex(newIndex);
       setShapes(history[newIndex]);
     }
+  };
+
+  const handleClear = () => {
+    setShapes([]);
+    setProjectParts(initialProjectParts);
+    commitHistory([]);
   };
 
   const onPointerDown = (e: React.PointerEvent<SVGElement>, shape: DrawableShape) => {
@@ -541,6 +549,9 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
           <div>
             <h4 className="font-bold text-gray-800 mb-3">Ações</h4>
             <div className="flex gap-2.5">
+              <button onClick={handleClear}
+                        className="flex-1 py-2 px-3 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">Limpar
+                </button>
               <button onClick={handleUndo} disabled={historyIndex <= 0}
                       className="flex-1 py-2 px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Voltar
               </button>
