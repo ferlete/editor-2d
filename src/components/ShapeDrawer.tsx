@@ -7,6 +7,7 @@ import {IMaterial} from '@/interfaces/IMaterial';
 import {IProjectPart} from '@/interfaces/IProjectPart';
 import {CircleShape, PolygonShape, Projection, Shape, Side, Unit, Vector} from '@/interfaces/IShape';
 import {ProjectPartService} from '@/services/project-parts/ProjectPartService';
+import PartConfigModal from "@/components/PartConfigModal";
 
 
 const unitToPx = (value: number, unit: Unit): number => {
@@ -123,6 +124,7 @@ interface ShapeDrawerProps {
 }
 
 type DrawableShape = Shape & {
+    partId: number;
     borderType: 'linear' | 'dotted';
     borderColor: string;
     partColor: string;
@@ -146,6 +148,8 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
   const [highlightedCollisionId, setHighlightedCollisionId] = useState<number | null>(null);
   const [history, setHistory] = useState<DrawableShape[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [partToConfig, setPartToConfig] = useState<IProjectPart | null>(null);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const shapesRef = useRef(shapes);
@@ -436,6 +440,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
     const newShapeInstance: DrawableShape = {
       ...partToAdd.shape,
       id: ++nextId.current,
+      partId: partToAdd.id,
       position: { x: dropX, y: dropY },
       borderType: partToAdd.borderType,
       borderColor: partToAdd.borderColor,
@@ -451,6 +456,35 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
             p.id === partToAdd.id ? { ...p, quantity: p.quantity - 1 } : p
         )
     );
+  };
+
+  const handleOpenConfigModal = (part: IProjectPart) => {
+    setPartToConfig(part);
+    setIsConfigModalOpen(true);
+  };
+
+  const handleSavePartConfig = async (updatedPart: IProjectPart) => {
+    await ProjectPartService.update(updatedPart);
+
+    setProjectParts(currentParts =>
+        currentParts.map(p => (p.id === updatedPart.id ? updatedPart : p))
+    );
+
+    setShapes(currentShapes =>
+        currentShapes.map(s => {
+            if (s.partId === updatedPart.id) {
+                return {
+                    ...s,
+                    borderType: updatedPart.borderType,
+                    borderColor: updatedPart.borderColor,
+                    partColor: updatedPart.partColor,
+                };
+            }
+            return s;
+        })
+    );
+
+    setIsConfigModalOpen(false);
   };
 
   const totalArea = planeWidth * planeHeight;
@@ -488,6 +522,17 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        onDragStart={(e) => handleDragStart(e, part)}
                        className={`flex justify-between items-center mb-2 p-3 rounded-md border ${part.quantity > 0 ? 'bg-white cursor-grab' : 'bg-gray-100 cursor-not-allowed'} border-gray-200`}>
                     <span className="text-black">{part.name} ({part.quantity}x)</span>
+                    <button onClick={() => handleOpenConfigModal(part)} className="p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500"
+                           fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.89 3.31.876 2.42 2.42a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.89 1.543-.876 3.31-2.42 2.42a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.89-3.31-.876-2.42-2.42a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.89-1.543.876-3.31 2.42-2.42.996.574 2.245.095 2.572-1.065z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+
+
+                    </button>
                   </div>
               )) : <p>Nenhuma peça no projeto.</p>}
             </div>
@@ -574,6 +619,12 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
             })}
           </svg>
         </main>
+        <PartConfigModal
+            part={partToConfig}
+            isOpen={isConfigModalOpen}
+            onClose={() => setIsConfigModalOpen(false)}
+            onSave={handleSavePartConfig}
+        />
       </div>
   );
 };
