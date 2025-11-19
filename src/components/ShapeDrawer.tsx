@@ -344,9 +344,28 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                         if (minOverlap === -1) mtv = null;
                     }
                 }
-              }
+            } else if (shapeA.type === 'circle' && shapeB.type === 'circle') {
+                const circleA = shapeA;
+                const circleB = shapeB;
 
-            // TODO: Verificar colisao entre dois círculos
+                const radiusA = unitToPx(circleA.radius, circleA.unit);
+                const radiusB = unitToPx(circleB.radius, circleB.unit);
+                const totalRadius = radiusA + radiusB + collisionMargin;
+
+                const dx = circleB.position.x - circleA.position.x;
+                const dy = circleB.position.y - circleA.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < totalRadius) {
+                    const overlap = totalRadius - distance;
+                    if (distance > 0) {
+                        const axis = { x: dx / distance, y: dy / distance };
+                        mtv = { x: axis.x * overlap, y: axis.y * overlap };
+                    } else {
+                        mtv = { x: overlap, y: 0 };
+                    }
+                }
+            }
 
             if (mtv) {
               isColliding = true;
