@@ -5,7 +5,7 @@
   "part_not_found": "Peça com ID {{partId}} não encontrada.",
   "back_to_home": "Voltar para Home",
   "part_config": "Configurações da Peça:",
-  "create_shape": "Criar Forma",
+  "create_shape": "Configurar Forma",
   "polygon": "Polígono",
   "circle": "Círculo",
   "num_sides": "Nº de lados:",

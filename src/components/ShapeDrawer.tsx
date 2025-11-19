@@ -1,6 +1,7 @@
 "use client"
 import React, {useEffect, useRef, useState} from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 // Importando todos os tipos e dados necessários
 import {IMaterial} from '@/interfaces/IMaterial';
@@ -137,6 +138,7 @@ type Interaction =
     | null;
 
 const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
+  const { t } = useTranslation('planner');
   const planeWidth = material.width;
   const planeHeight = material.height;
 
@@ -504,15 +506,15 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
         <aside className="w-96 flex-shrink-0 bg-white p-6 shadow-lg flex flex-col gap-5 rounded-lg">
           <Link href="/"
                 className="flex-1 py-2 px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-            ← Voltar para Seleção de Materiais
+            ← {t('back_to_material_selection')}
           </Link>
 
           <div className="p-4 border border-gray-200 rounded-lg">
-            <h4 className="font-bold text-gray-800">Plano de Corte: {material.name}</h4>
-            <p className="text-sm text-gray-500">Dimensões: {material.width}mm
+            <h4 className="font-bold text-gray-800">{t('cutting_plan')}: {material.name}</h4>
+            <p className="text-sm text-gray-500">{t('dimensions')}: {material.width}mm
               x {material.height}mm</p>
             <label className="block mt-2.5">
-              <span className="text-sm font-medium text-gray-700">Margem de Colisão (mm):</span>
+              <span className="text-sm font-medium text-gray-700">{t('collision_margin_mm')}:</span>
               <input type="number" min={0} value={collisionMargin}
                      onChange={e => setCollisionMargin(Number(e.target.value))}
                      className="w-16 ml-2 mt-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"/>
@@ -520,10 +522,10 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
           </div>
 
           <div>
-            <h4 className="font-bold text-gray-800 mb-3">Peças do Projeto</h4>
+            <h4 className="font-bold text-gray-800 mb-3">{t('project_parts')}</h4>
             <div className="border border-gray-200 rounded-lg p-2.5 max-h-72 overflow-y-auto">
               {isLoadingParts ? (
-                  <p>Carregando peças...</p>
+                  <p>{t('loading_parts')}</p>
               ) : projectParts.length > 0 ? projectParts.map(part => (
                   <div key={part.id}
                        draggable={part.quantity > 0}
@@ -542,33 +544,32 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
 
                     </button>
                   </div>
-              )) : <p>Nenhuma peça no projeto.</p>}
+              )) : <p>{t('no_parts_in_project')}</p>}
             </div>
           </div>
 
           <div>
-            <h4 className="font-bold text-gray-800 mb-3">Ações</h4>
+            <h4 className="font-bold text-gray-800 mb-3">{t('actions')}</h4>
             <div className="flex gap-2.5">
               <button onClick={handleClear}
-                        className="flex-1 py-2 px-3 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">Limpar
+                        className="flex-1 py-2 px-3 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('clear')}
                 </button>
               <button onClick={handleUndo} disabled={historyIndex <= 0}
-                      className="flex-1 py-2 px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Voltar
+                      className="flex-1 py-2 px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('undo')}
               </button>
               <button onClick={handleRedo} disabled={historyIndex >= history.length - 1}
-                      className="flex-1 py-2 px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Avançar
+                      className="flex-1 py-2 px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('redo')}
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-4">💡 Dicas: Segure &#39;Alt&#39; + Arraste para
-              rotacionar, &#39;Ctrl&#39; + Arraste para redimensionar.</p>
+            <p className="text-xs text-gray-500 mt-4">{t('tips_drag_rotate_scale')}</p>
           </div>
 
           <div className="border border-gray-200 p-4 rounded-lg mt-auto">
-            <h4 className="font-bold mb-2 text-gray-800">Resumo</h4>
+            <h4 className="font-bold mb-2 text-gray-800">{t('summary')}</h4>
             <div className="space-y-1 text-sm text-gray-700">
-              <p>Aproveitamento: {totalArea > 0 ? ((usedArea / totalArea) * 100).toFixed(1) : 0}%</p>
-              <p>Área Ocupada: {Math.round(usedArea / 100)} cm²</p>
-              <p>Área Total: {Math.round(totalArea / 100)} cm²</p>
+              <p>{t('utilization')}: {totalArea > 0 ? ((usedArea / totalArea) * 100).toFixed(1) : 0}%</p>
+              <p>{t('occupied_area')}: {Math.round(usedArea / 100)} cm²</p>
+              <p>{t('total_area')}: {Math.round(totalArea / 100)} cm²</p>
             </div>
           </div>
         </aside>

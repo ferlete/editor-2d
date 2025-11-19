@@ -314,7 +314,7 @@ export default function ConfigPage() {
                         {shapeType === 'circle' && (
                             <div className="flex items-center gap-2 mb-2">
                                 <label className="flex-grow">
-                                    <span className="text-gray-900 text-sm">{t('radius')}:</span>
+                                    <span className="text-gray-900 text-sm">{t('radius')}</span>
                                     <input
                                         type="number"
                                         value={radius}

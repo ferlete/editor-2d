@@ -8,6 +8,7 @@ import {IMaterial} from '@/interfaces/IMaterial';
 import ShapeDrawer from '@/components/ShapeDrawer';
 import Link from 'next/link';
 import {useIsMounted} from '@/hooks/useIsMounted';
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function PlannerPage() {
     const isMounted = useIsMounted();
@@ -21,6 +22,7 @@ export default function PlannerPage() {
 
     useEffect(() => {
         if (!materialId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setError(t('no_material_selected'));
             setIsLoading(false);
             return;
@@ -63,8 +65,11 @@ export default function PlannerPage() {
 
     // O componente ShapeDrawer controla toda a lógica e layout da página.
     return (
-        <div className="min-h-screen bg-gray-100 relative">
-            <ShapeDrawer material={material} />
+
+        <div className="p-8 bg-gray-50 min-h-screen relative">
+            <LanguageSwitcher/>
+            <h1 className="text-3xl font-bold text-gray-800">{t('title')}</h1>
+            <ShapeDrawer material={material}/>
         </div>
     );
 }

@@ -5,7 +5,7 @@
   "part_not_found": "Part with ID {{partId}} not found.",
   "back_to_home": "Back to Home",
   "part_config": "Part Configuration:",
-  "create_shape": "Create Shape",
+  "create_shape": "Configure Shape",
   "polygon": "Polygon",
   "circle": "Circle",
   "num_sides": "Number of sides:",
