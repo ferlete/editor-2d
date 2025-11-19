@@ -21,5 +21,9 @@
   "summary": "Zusammenfassung",
   "utilization": "Auslastung",
   "occupied_area": "Belegter Bereich",
-  "total_area": "Gesamtfläche"
+  "total_area": "Gesamtfläche",
+  "type": "Typ",
+  "polygon": "Polygon",
+  "circle": "Kreis",
+  "sides": "Seiten"
 }

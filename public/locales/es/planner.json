@@ -21,5 +21,9 @@
   "summary": "Resumen",
   "utilization": "Aprovechamiento",
   "occupied_area": "Área Ocupada",
-  "total_area": "Área Total"
+  "total_area": "Área Total",
+  "type": "Tipo",
+  "polygon": "Polígono",
+  "circle": "Círculo",
+  "sides": "Lados"
 }

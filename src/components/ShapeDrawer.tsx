@@ -531,7 +531,13 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        draggable={part.quantity > 0}
                        onDragStart={(e) => handleDragStart(e, part)}
                        className={`flex justify-between items-center mb-2 p-3 rounded-md border ${part.quantity > 0 ? 'bg-white cursor-grab' : 'bg-gray-100 cursor-not-allowed'} border-gray-200`}>
-                    <span className="text-black">{part.name} ({part.quantity}x)</span>
+                    <div className="flex flex-col">
+                      <span className="text-black">{part.name} ({part.quantity}x)</span>
+                      <span className="text-gray-500 text-sm">
+                        {t('type')}: {part.shape.type === 'polygon' ? t('polygon') : t('circle')}
+                        {part.shape.type === 'polygon' && ` (${t('sides')}: ${part.shape.sides.length})`}
+                      </span>
+                    </div>
                     <button onClick={() => handleOpenConfigModal(part)} className="p-1">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500"
                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
