@@ -64,6 +64,7 @@ export default function PlannerPage() {
     // O componente ShapeDrawer controla toda a lógica e layout da página.
     return (
         <div className="min-h-screen bg-gray-100 relative">
+            <ShapeDrawer material={material} />
         </div>
     );
 }
