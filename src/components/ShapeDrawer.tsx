@@ -97,6 +97,8 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const shapesRef = useRef(shapes);
+  const nextId = useRef(Date.now());
+
   useEffect(() => {
     shapesRef.current = shapes;
   }, [shapes]);
@@ -126,7 +128,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
 
     const newShapeInstance: DrawableShape = {
       ...partToAdd.shape,
-      id: Date.now(), // Unique ID for this instance on canvas
+      id: ++nextId.current, // Unique ID for this instance on canvas
       position: {x: planeWidth / 2, y: planeHeight / 2}, // Posição inicial centralizada
       borderType: partToAdd.borderType,
       borderColor: partToAdd.borderColor,
@@ -262,6 +264,54 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
     setInteraction(null);
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, part: IProjectPart) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(part));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault(); // This is necessary to allow dropping
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    const partDataString = e.dataTransfer.getData('application/json');
+    if (!partDataString) return;
+
+    const partToAdd: IProjectPart = JSON.parse(partDataString);
+
+    if (partToAdd.quantity <= 0) return;
+
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
+
+    const viewbox = svgRef.current?.viewBox.baseVal;
+    const scaleX = viewbox ? viewbox.width / svgRect.width : 1;
+    const scaleY = viewbox ? viewbox.height / svgRect.height : 1;
+
+    const dropX = (e.clientX - svgRect.left) * scaleX;
+    const dropY = (e.clientY - svgRect.top) * scaleY;
+
+    const newShapeInstance: DrawableShape = {
+      ...partToAdd.shape,
+      id: ++nextId.current,
+      position: { x: dropX, y: dropY },
+      borderType: partToAdd.borderType,
+      borderColor: partToAdd.borderColor,
+      partColor: partToAdd.partColor,
+    };
+
+    const updatedShapes = [...shapes, newShapeInstance];
+    setShapes(updatedShapes);
+    commitHistory(updatedShapes);
+
+    setProjectParts(currentParts =>
+        currentParts.map(p =>
+            p.id === partToAdd.id ? { ...p, quantity: p.quantity - 1 } : p
+        )
+    );
+  };
+
   const totalArea = planeWidth * planeHeight;
   const usedArea = shapes.reduce((acc, s) => acc + calculateArea(s), 0);
 
@@ -293,13 +343,10 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                   <p>Carregando peças...</p>
               ) : projectParts.length > 0 ? projectParts.map(part => (
                   <div key={part.id}
-                       className={`flex justify-between items-center mb-2 p-3 rounded-md border ${part.quantity > 0 ? 'bg-white' : 'bg-gray-100'} border-gray-200`}>
+                       draggable={part.quantity > 0}
+                       onDragStart={(e) => handleDragStart(e, part)}
+                       className={`flex justify-between items-center mb-2 p-3 rounded-md border ${part.quantity > 0 ? 'bg-white cursor-grab' : 'bg-gray-100 cursor-not-allowed'} border-gray-200`}>
                     <span className="text-black">{part.name} ({part.quantity}x)</span>
-                    <button onClick={() => handleAddPartFromProject(part)}
-                            disabled={part.quantity <= 0}
-                            className="rounded bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                      + Adicionar
-                    </button>
                   </div>
               )) : <p>Nenhuma peça no projeto.</p>}
             </div>
@@ -331,7 +378,10 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
 
         {/* CANVAS SVG */}
         <main
-            className="flex-grow border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative overflow-auto select-none">
+            className="flex-grow border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative overflow-auto select-none"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+        >
           <svg
               ref={svgRef}
               viewBox={`0 0 ${planeWidth} ${planeHeight}`}
