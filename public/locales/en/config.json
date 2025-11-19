@@ -1,0 +1,20 @@
+{
+  "loading_config": "Loading Configuration...",
+  "no_part_selected": "No part selected.",
+  "error_loading_part": "An error occurred while loading the part.",
+  "part_not_found": "Part with ID {{partId}} not found.",
+  "back_to_home": "Back to Home",
+  "part_config": "Part Configuration:",
+  "create_shape": "Create Shape",
+  "polygon": "Polygon",
+  "circle": "Circle",
+  "num_sides": "Number of sides:",
+  "side": "Side",
+  "radius": "Radius:",
+  "back": "Back",
+  "save": "Save",
+  "saving": "Saving...",
+  "save_failed": "Failed to save part.",
+  "quantity": "Quantity:",
+  "part_name": "Part Name:"
+}

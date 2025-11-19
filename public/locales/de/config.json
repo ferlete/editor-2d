@@ -1,0 +1,20 @@
+{
+  "loading_config": "Konfiguration wird geladen...",
+  "no_part_selected": "Kein Teil ausgewählt.",
+  "error_loading_part": "Beim Laden des Teils ist ein Fehler aufgetreten.",
+  "part_not_found": "Teil mit ID {{partId}} nicht gefunden.",
+  "back_to_home": "Zurück zur Startseite",
+  "part_config": "Teilekonfiguration:",
+  "create_shape": "Form erstellen",
+  "polygon": "Polygon",
+  "circle": "Kreis",
+  "num_sides": "Anzahl der Seiten:",
+  "side": "Seite",
+  "radius": "Radius:",
+  "back": "Zurück",
+  "save": "Speichern",
+  "saving": "Wird gespeichert...",
+  "save_failed": "Fehler beim Speichern des Teils.",
+  "quantity": "Menge:",
+  "part_name": "Teilname:"
+}

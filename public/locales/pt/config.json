@@ -1,0 +1,20 @@
+{
+  "loading_config": "Carregando Configuração...",
+  "no_part_selected": "Nenhuma peça selecionada.",
+  "error_loading_part": "Ocorreu um erro ao carregar a peça.",
+  "part_not_found": "Peça com ID {{partId}} não encontrada.",
+  "back_to_home": "Voltar para Home",
+  "part_config": "Configurações da Peça:",
+  "create_shape": "Criar Forma",
+  "polygon": "Polígono",
+  "circle": "Círculo",
+  "num_sides": "Nº de lados:",
+  "side": "Lado",
+  "radius": "Raio:",
+  "back": "Voltar",
+  "save": "Salvar",
+  "saving": "Salvando...",
+  "save_failed": "Falha ao salvar a peça.",
+  "quantity": "Quantidade:",
+  "part_name": "Nome da Peça:"
+}

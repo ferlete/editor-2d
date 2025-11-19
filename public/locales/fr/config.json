@@ -1,0 +1,20 @@
+{
+  "loading_config": "Chargement de la configuration...",
+  "no_part_selected": "Aucune pièce sélectionnée.",
+  "error_loading_part": "Une erreur est survenue lors du chargement de la pièce.",
+  "part_not_found": "Pièce avec l'ID {{partId}} introuvable.",
+  "back_to_home": "Retour à l'accueil",
+  "part_config": "Configuration de la pièce :",
+  "create_shape": "Créer une forme",
+  "polygon": "Polygone",
+  "circle": "Cercle",
+  "num_sides": "Nº de côtés :",
+  "side": "Côté",
+  "radius": "Rayon :",
+  "back": "Retour",
+  "save": "Enregistrer",
+  "saving": "Enregistrement...",
+  "save_failed": "Échec de l'enregistrement de la pièce.",
+  "quantity": "Quantité :",
+  "part_name": "Nom de la pièce :"
+}
