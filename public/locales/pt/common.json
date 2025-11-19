@@ -24,5 +24,8 @@
     "upload_csv_description": "Selecione um arquivo CSV com as colunas 'name' e 'quantity' para adicionar peças em massa.",
     "choose_file_button": "Escolher Arquivo",
     "upload_button": "Fazer Upload",
-    "select_csv_file_error": "Por favor, selecione um arquivo CSV para fazer o upload."
+    "select_csv_file_error": "Por favor, selecione um arquivo CSV para fazer o upload.",
+    "upload_success": "Upload realizado com sucesso.",
+    "part_add_success": "Peça adicionada com sucesso.",
+    "material_add_success": "Material adicionado com sucesso."
 }

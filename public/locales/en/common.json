@@ -24,5 +24,8 @@
     "upload_csv_description": "Select a CSV file with 'name' and 'quantity' columns to bulk-add parts.",
     "choose_file_button": "Choose File",
     "upload_button": "Upload",
-    "select_csv_file_error": "Please select a CSV file to upload."
+    "select_csv_file_error": "Please select a CSV file to upload.",
+    "upload_success": "Upload successful.",
+    "part_add_success": "Part added successfully.",
+    "material_add_success": "Material added successfully."
 }

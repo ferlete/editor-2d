@@ -10,11 +10,11 @@ i18n
   .init({
     // lng: 'pt', // Let the detector set the language
     fallbackLng: 'pt',
-    supportedLngs: ['pt', 'en'],
+    supportedLngs: ['pt', 'en', 'es', 'fr', 'de'],
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
-    ns: ['common', 'planner', 'config'],
+    ns: ['common'],
     defaultNS: 'common',
     interpolation: {
       escapeValue: false,

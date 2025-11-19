@@ -47,6 +47,7 @@ export default function Home() {
     const newMaterial = await MaterialService.add(newMaterialData);
     setMaterials((prevMaterials) => [...prevMaterials, newMaterial]);
     setIsMaterialModalOpen(false);
+    setToastMessage( t('material_add_success'));
   };
 
   const handleAddPart = async (name: string, quantity: number) => {
@@ -56,6 +57,7 @@ export default function Home() {
       setProjectParts(updatedParts);
     }
     setIsPartModalOpen(false);
+    setToastMessage( t('part_add_success'));
   };
 
   const handleUploadCsv = async () => {
@@ -71,7 +73,7 @@ export default function Home() {
     }
     setIsUploadModalOpen(false);
     // Mostrar notificação de sucesso por alguns segundos
-    setToastMessage('Upload realizado com sucesso');
+    setToastMessage( t('upload_success'));
   };
 
   // Limpa a mensagem de toast automaticamente após 3 segundos
