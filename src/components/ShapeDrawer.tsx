@@ -302,8 +302,51 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                     }
                 }
                 if (minOverlap === -1) mtv = null;
-            }
-            // TODO: Verificar colisao entre dois círculos ou poligonos e circulo
+            } else if ((shapeA.type === 'polygon' && shapeB.type === 'circle') || (shapeA.type === 'circle' && shapeB.type === 'polygon')) {
+                const polygon = (shapeA.type === 'polygon' ? shapeA : shapeB) as PolygonShape;
+                const circle = (shapeA.type === 'circle' ? shapeA : shapeB) as CircleShape;
+
+                const polygonVertices = getTransformedVertices(polygon);
+                const polygonAxes = getAxes(polygonVertices);
+
+                let closestVertexDist = Infinity;
+                let closestVertex: Vector | null = null;
+                for (const vertex of polygonVertices) {
+                    const dist = Math.sqrt(Math.pow(vertex.x - circle.position.x, 2) + Math.pow(vertex.y - circle.position.y, 2));
+                    if (dist < closestVertexDist) {
+                        closestVertexDist = dist;
+                        closestVertex = vertex;
+                    }
+                }
+
+                if (closestVertex) {
+                    const axisToCircleCenter = { x: closestVertex.x - circle.position.x, y: closestVertex.y - circle.position.y };
+                    const axisLength = Math.sqrt(axisToCircleCenter.x * axisToCircleCenter.x + axisToCircleCenter.y * axisToCircleCenter.y);
+                    if (axisLength > 0) {
+                        const normalizedAxisToCircle = { x: axisToCircleCenter.x / axisLength, y: axisToCircleCenter.y / axisLength };
+                        const axes = [...polygonAxes, normalizedAxisToCircle];
+                        let minOverlap = Infinity;
+
+                        for (const axis of axes) {
+                            const projA = project(polygonVertices, axis);
+                            const projB = projectCircle(circle, axis);
+                            const overlap = Math.min(projA.max, projB.max) - Math.max(projA.min, projB.min);
+
+                            if (overlap < collisionMargin) {
+                                minOverlap = -1;
+                                break;
+                            }
+                            if (overlap < minOverlap) {
+                                minOverlap = overlap;
+                                mtv = { x: axis.x * (minOverlap - collisionMargin), y: axis.y * (minOverlap - collisionMargin) };
+                            }
+                        }
+                        if (minOverlap === -1) mtv = null;
+                    }
+                }
+              }
+
+            // TODO: Verificar colisao entre dois círculos
 
             if (mtv) {
               isColliding = true;
@@ -340,6 +383,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
     } catch (err) {
     }
     setInteraction(null);
+    setHighlightedCollisionId(null);
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, part: IProjectPart) => {
@@ -498,6 +542,9 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        transform={`translate(${shape.position.x},${shape.position.y})`}
                        onPointerDown={e => onPointerDown(e, shape)}
                        className={isInteracting ? 'cursor-grabbing' : 'cursor-grab'}>
+                      {/* Barreira de colisão visual */}
+                      <circle cx={0} cy={0} r={radius} fill="none" stroke={strokeColor}
+                              strokeWidth={collisionMargin * 2}/>
                       {/* Peça real */}
                       <circle cx={0} cy={0} r={radius} className="stroke-black" stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
                               fill={isInteracting ? "#8ec5fc" : shape.partColor}/>
