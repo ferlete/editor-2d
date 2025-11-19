@@ -44,6 +44,9 @@ const add = async (name: string, quantity: number): Promise<IProjectPart> => {
           name,
           shape: defaultShape,
           quantity,
+          borderType: 'linear',
+          borderColor: '#000000',
+          partColor: '#a0c4ff',
         };
         projectCuttingList.push(newPart);
         resolve(newPart);
@@ -63,6 +66,9 @@ const addFromCsv = async (csvData: { name: string; quantity: number }[]): Promis
                     name: item.name,
                     shape: defaultShape,
                     quantity: item.quantity,
+                    borderType: 'linear',
+                    borderColor: '#000000',
+                    partColor: '#a0c4ff',
                 };
                 projectCuttingList.push(newPart);
                 newParts.push(newPart);
