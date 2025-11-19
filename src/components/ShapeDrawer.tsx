@@ -5,7 +5,7 @@ import Link from 'next/link';
 // Importando todos os tipos e dados necessários
 import {IMaterial} from '@/interfaces/IMaterial';
 import {IProjectPart} from '@/interfaces/IProjectPart';
-import { Shape, Side, Unit, Vector} from '@/interfaces/IShape';
+import {CircleShape, PolygonShape, Projection, Shape, Side, Unit, Vector} from '@/interfaces/IShape';
 import {ProjectPartService} from '@/services/project-parts/ProjectPartService';
 
 
@@ -66,6 +66,57 @@ function calculateArea(shape: Shape): number {
   return 0; // Should not happen for known shapes
 }
 
+// Etapa A: O Algoritmo calcula a posicao exata de cada vertice dos poligonos no "mundo",
+// aplicando a translacao (posicao x e y) e a rotacao da peca.
+function getTransformedVertices(poly: PolygonShape): Vector[] {
+  const localVertices = calculateLocalVertices(poly.sides.length, poly.sides);
+  const angleRad = poly.rotation * (Math.PI / 180);
+  const cos = Math.cos(angleRad);
+  const sin = Math.sin(angleRad);
+  return localVertices.map(v => ({
+    x: (v.x * cos - v.y * sin) + poly.position.x,
+    y: (v.x * sin + v.y * cos) + poly.position.y,
+  }));
+}
+
+// Etapa B: O Algoritmo determina todos os eixos que precisam ser testados. Estes sao os vetores
+// normais (perpendiculares) a cada aresta de ambos os poligonos.
+function getAxes(vertices: Vector[]): Vector[] {
+  const axes: Vector[] = [];
+  for (let i = 0; i < vertices.length; i++) {
+    const p1 = vertices[i];
+    const p2 = vertices[i + 1] || vertices[0];
+    const edge = {x: p2.x - p1.x, y: p2.y - p1.y};
+    const normal = {x: -edge.y, y: edge.x};
+    const length = Math.sqrt(normal.x * normal.x + normal.y * normal.y);
+    if (length > 0) axes.push({x: normal.x / length, y: normal.y / length});
+  }
+  return axes;
+}
+
+// Etapa C: Projetar os poligonos e verificar a sobreposicao
+// Para cada eixo calculado, o algoritmo "projeta" ambos os poligonos sobre ele. Isso 'e como
+// "achatar" a forma em uma linha 1D. A funcao project retonar o intervalo (min e max) que a
+// forma ocupa nesse eixo.
+function project(vertices: Vector[], axis: Vector): Projection {
+  let min = Infinity, max = -Infinity;
+  for (const vertex of vertices) {
+    const dotProduct = vertex.x * axis.x + vertex.y * axis.y;
+    min = Math.min(min, dotProduct);
+    max = Math.max(max, dotProduct);
+  }
+  return {min, max};
+}
+
+function projectCircle(circle: CircleShape, axis: Vector): Projection {
+    const radius = unitToPx(circle.radius, circle.unit);
+    const centerProjection = (circle.position.x * axis.x) + (circle.position.y * axis.y);
+    return {
+        min: centerProjection - radius,
+        max: centerProjection + radius,
+    };
+}
+
 // --- Componente Principal ---
 interface ShapeDrawerProps {
   material: IMaterial;
@@ -92,11 +143,13 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
   const [isLoadingParts, setIsLoadingParts] = useState(true);
   const [collisionMargin, setCollisionMargin] = useState(5); // Margem de 5mm por padrão
   const [interaction, setInteraction] = useState<Interaction>(null);
+  const [highlightedCollisionId, setHighlightedCollisionId] = useState<number | null>(null);
   const [history, setHistory] = useState<DrawableShape[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const shapesRef = useRef(shapes);
+  // eslint-disable-next-line react-hooks/purity
   const nextId = useRef(Date.now());
 
   useEffect(() => {
@@ -121,28 +174,6 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
     const newHistory = history.slice(0, historyIndex + 1);
     setHistory([...newHistory, newShapes]);
     setHistoryIndex(newHistory.length);
-  };
-
-  const handleAddPartFromProject = (partToAdd: IProjectPart) => {
-    if (partToAdd.quantity <= 0) return;
-
-    const newShapeInstance: DrawableShape = {
-      ...partToAdd.shape,
-      id: ++nextId.current, // Unique ID for this instance on canvas
-      position: {x: planeWidth / 2, y: planeHeight / 2}, // Posição inicial centralizada
-      borderType: partToAdd.borderType,
-      borderColor: partToAdd.borderColor,
-      partColor: partToAdd.partColor,
-    };
-    const updatedShapes = [...shapes, newShapeInstance];
-    setShapes(updatedShapes);
-    commitHistory(updatedShapes);
-
-    setProjectParts(currentParts =>
-        currentParts.map(p =>
-            p.id === partToAdd.id ? {...p, quantity: p.quantity - 1} : p
-        )
-    );
   };
 
   const handleUndo = () => {
@@ -243,7 +274,54 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
         case 'drag': {
           const newPos = {x: mouseX - interaction.offset.x, y: mouseY - interaction.offset.y};
           const draggedShape = {...shapeToUpdate, position: newPos};
+          let isColliding = false;
 
+          for (const otherShape of currentShapes) {
+            if (otherShape.id === interaction.id) continue;
+
+            let mtv: Vector | null = null;
+            const shapeA = draggedShape;
+            const shapeB = otherShape;
+
+            if (shapeA.type === 'polygon' && shapeB.type === 'polygon') {
+                const verticesA = getTransformedVertices(shapeA);
+                const verticesB = getTransformedVertices(shapeB);
+                const axes = [...getAxes(verticesA), ...getAxes(verticesB)];
+                let minOverlap = Infinity;
+                for (const axis of axes) {
+                    const projA = project(verticesA, axis);
+                    const projB = project(verticesB, axis);
+                    const overlap = Math.min(projA.max, projB.max) - Math.max(projA.min, projB.min);
+                    if (overlap < collisionMargin) {
+                        minOverlap = -1;
+                        break;
+                    }
+                    if (overlap < minOverlap) {
+                        minOverlap = overlap;
+                        mtv = { x: axis.x * (minOverlap - collisionMargin), y: axis.y * (minOverlap - collisionMargin) };
+                    }
+                }
+                if (minOverlap === -1) mtv = null;
+            }
+            // TODO: Verificar colisao entre dois círculos ou poligonos e circulo
+
+            if (mtv) {
+              isColliding = true;
+              setHighlightedCollisionId(otherShape.id);
+              const direction = {
+                x: newPos.x - otherShape.position.x,
+                y: newPos.y - otherShape.position.y
+              };
+              if ((direction.x * mtv.x + direction.y * mtv.y) < 0) {
+                mtv.x = -mtv.x;
+                mtv.y = -mtv.y;
+              }
+              newPos.x += mtv.x;
+              newPos.y += mtv.y;
+              draggedShape.position = newPos;
+            }
+          }
+          if (!isColliding) setHighlightedCollisionId(null);
           shapeToUpdate.position = draggedShape.position;
           break;
         }
@@ -394,6 +472,8 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
           >
             {shapes.map((shape) => {
               const isInteracting = interaction?.id === shape.id;
+              const isHighlighted = isInteracting || shape.id === highlightedCollisionId;
+              const strokeColor = isHighlighted ? "rgba(255,0,0,0.9)" : "transparent";
 
               if (shape.type === 'polygon') {
                 const localVertices = calculateLocalVertices(shape.sides.length, shape.sides);
@@ -403,8 +483,11 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        transform={`translate(${shape.position.x},${shape.position.y}) rotate(${shape.rotation})`}
                        onPointerDown={e => onPointerDown(e, shape)}
                        className={isInteracting ? 'cursor-grabbing' : 'cursor-grab'}>
+                      {/* Barreira de colisão visual */}
+                      <polygon points={points} fill="none" stroke={strokeColor}
+                               strokeWidth={collisionMargin * 2} strokeLinejoin="round"/>
                       {/* Peça real */}
-                      <polygon points={points} stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
+                      <polygon points={points} className="stroke-black" stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
                                fill={isInteracting ? "#8ec5fc" : shape.partColor}/>
                     </g>
                 );
@@ -416,7 +499,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        onPointerDown={e => onPointerDown(e, shape)}
                        className={isInteracting ? 'cursor-grabbing' : 'cursor-grab'}>
                       {/* Peça real */}
-                      <circle cx={0} cy={0} r={radius} stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
+                      <circle cx={0} cy={0} r={radius} className="stroke-black" stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
                               fill={isInteracting ? "#8ec5fc" : shape.partColor}/>
                     </g>
                 );
