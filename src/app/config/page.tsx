@@ -168,11 +168,13 @@ export default function ConfigPage() {
 
     useEffect(() => {
         if (shapeType === 'polygon') {
-            const newSideLengths: Side[] = [];
-            for (let i = 0; i < numSides; i++) {
-                newSideLengths.push(sideLengths[i] || { length: 5.0, unit: 'cm' });
-            }
-            setSideLengths(newSideLengths);
+            setSideLengths(prevSideLengths => {
+                const newSideLengths = Array.from({ length: numSides });
+                for (let i = 0; i < numSides; i++) {
+                    newSideLengths[i] = prevSideLengths[i] || { length: 5.0, unit: 'cm' };
+                }
+                return newSideLengths as Side[];
+            });
         }
     }, [numSides, shapeType]);
 
@@ -294,7 +296,7 @@ export default function ConfigPage() {
                                             <span className="text-gray-900 text-sm">{t('side')} {index + 1}:</span>
                                             <input
                                                 type="number"
-                                                value={side.length}
+                                                value={side.length ?? 0}
                                                 onChange={(e) => handleSideLengthChange(index, e.target.value)}
                                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-gray-900"
                                             />
