@@ -21,7 +21,7 @@ const unitToPx = (value: number, unit: Unit): number => {
 };
 
 // Componente para renderizar o polígono SVG
-const PolygonPreview: React.FC<{ sides: number; sideLengths: Side[] }> = ({ sides, sideLengths }) => {
+const PolygonPreview: React.FC<{ sides: number; sideLengths: Side[]; borderColor: string; borderType: 'linear' | 'dotted'; partColor: string }> = ({ sides, sideLengths, borderColor, borderType, partColor }) => {
     if (sides < 3) return null;
 
     const size = 200; // Tamanho do contêiner do SVG
@@ -71,23 +71,17 @@ const PolygonPreview: React.FC<{ sides: number; sideLengths: Side[] }> = ({ side
             <g>
                 <polygon
                     points={points.join(' ')}
-                    fill="#a0c4ff88"
-                    stroke="black"
+                    fill={partColor}
+                    stroke={borderColor}
                     strokeWidth="2"
-                />
-                <polygon
-                    points={points.join(' ')}
-                    fill="none"
-                    stroke="rgba(255, 193, 7, 0.8)"
-                    strokeWidth="10"
-                    strokeLinejoin="round"
+                    strokeDasharray={borderType === 'dotted' ? '5,5' : 'none'}
                 />
             </g>
         </svg>
     );
 };
 
-const CirclePreview: React.FC<{ radius: number; unit: Unit }> = ({ radius, unit }) => {
+const CirclePreview: React.FC<{ radius: number; unit: Unit; borderColor: string; borderType: 'linear' | 'dotted'; partColor: string }> = ({ radius, unit, borderColor, borderType, partColor }) => {
     const size = 200;
     const center = size / 2;
     const radiusPx = unitToPx(radius, unit);
@@ -101,17 +95,10 @@ const CirclePreview: React.FC<{ radius: number; unit: Unit }> = ({ radius, unit 
                     cx={center}
                     cy={center}
                     r={scaledRadius}
-                    fill="#a0c4ff88"
-                    stroke="black"
+                    fill={partColor}
+                    stroke={borderColor}
                     strokeWidth="2"
-                />
-                <circle
-                    cx={center}
-                    cy={center}
-                    r={scaledRadius}
-                    fill="none"
-                    stroke="rgba(255, 193, 7, 0.8)"
-                    strokeWidth="10"
+                    strokeDasharray={borderType === 'dotted' ? '5,5' : 'none'}
                 />
             </g>
         </svg>
@@ -138,6 +125,9 @@ export default function ConfigPage() {
     const [radiusUnit, setRadiusUnit] = useState<Unit>('cm');
     const [quantity, setQuantity] = useState(1); // New state for quantity
     const [partName, setPartName] = useState(''); // New state for part name
+    const [borderType, setBorderType] = useState<'linear' | 'dotted'>('linear');
+    const [borderColor, setBorderColor] = useState('#000000');
+    const [partColor, setPartColor] = useState('#a0c4ff');
 
     useEffect(() => {
         if (!partId) {
@@ -155,6 +145,9 @@ export default function ConfigPage() {
                 setShapeType(partResult.shape.type);
                 setQuantity(partResult.quantity); // Initialize quantity
                 setPartName(partResult.name); // Initialize part name
+                setBorderType(partResult.borderType);
+                setBorderColor(partResult.borderColor);
+                setPartColor(partResult.partColor);
                 if (partResult.shape.type === 'polygon') {
                     setNumSides(partResult.shape.sides.length);
                     if (partResult.shape.sides.length === 4) {
@@ -206,6 +199,9 @@ export default function ConfigPage() {
                 ...part,
                 name: partName, // Include name
                 quantity: quantity, // Include quantity
+                borderType: borderType,
+                borderColor: borderColor,
+                partColor: partColor,
                 shape: {
                     id: part.shape.id,
                     position: part.shape.position,
@@ -219,6 +215,9 @@ export default function ConfigPage() {
                 ...part,
                 name: partName, // Include name
                 quantity: quantity, // Include quantity
+                borderType: borderType,
+                borderColor: borderColor,
+                partColor: partColor,
                 shape: {
                     id: part.shape.id,
                     position: part.shape.position,
@@ -348,6 +347,35 @@ export default function ConfigPage() {
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                             />
                         </div>
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700">Tipo de Borda</label>
+                            <select
+                                value={borderType}
+                                onChange={(e) => setBorderType(e.target.value as 'linear' | 'dotted')}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                            >
+                                <option value="linear">Linear</option>
+                                <option value="dotted">Pontilhada</option>
+                            </select>
+                        </div>
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700">Cor da Borda</label>
+                            <input
+                                type="color"
+                                value={borderColor}
+                                onChange={(e) => setBorderColor(e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                        </div>
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700">Cor da Peça</label>
+                            <input
+                                type="color"
+                                value={partColor}
+                                onChange={(e) => setPartColor(e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-4 mt-6">
@@ -363,9 +391,9 @@ export default function ConfigPage() {
                 {/* Painel de Preview */}
                 <div className="w-2/3 bg-white p-6 rounded-lg shadow-md flex items-center justify-center">
                     {shapeType === 'polygon' ? (
-                        <PolygonPreview sides={numSides} sideLengths={sideLengths} />
+                        <PolygonPreview sides={numSides} sideLengths={sideLengths} borderColor={borderColor} borderType={borderType} partColor={partColor} />
                     ) : (
-                        <CirclePreview radius={radius} unit={radiusUnit} />
+                        <CirclePreview radius={radius} unit={radiusUnit} borderColor={borderColor} borderType={borderType} partColor={partColor} />
                     )}
                 </div>
             </div>

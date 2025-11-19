@@ -31,7 +31,7 @@ export const createCircle = (id: number, radius: number, unit: Unit): CircleShap
 
 // Lista de peças que formam um projeto de corte exemplo.
 export let projectCuttingList: IProjectPart[] = [
-    { id: 101, name: 'Peça A', shape: createCircle(101, 600, 'mm'), quantity: 2 },
-    { id: 102, name: 'Peça B', shape: createRectangle(102, 564, 480), quantity: 4 },
-    { id: 103, name: 'Peça C', shape: createRectangle(103, 564, 150), quantity: 4 },
+    { id: 101, name: 'Peça A', shape: createCircle(101, 600, 'mm'), quantity: 2, borderType: 'linear', borderColor: '#000000', partColor: '#a0c4ff' },
+    { id: 102, name: 'Peça B', shape: createRectangle(102, 564, 480), quantity: 4, borderType: 'linear', borderColor: '#000000', partColor: '#a0c4ff' },
+    { id: 103, name: 'Peça C', shape: createRectangle(103, 564, 150), quantity: 4, borderType: 'dotted', borderColor: '#FF0000', partColor: '#a0c4ff' },
 ];

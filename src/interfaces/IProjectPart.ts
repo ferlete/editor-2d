@@ -5,4 +5,7 @@ export interface IProjectPart {
     name: string;
     shape: Shape;
     quantity: number;
+    borderType: 'linear' | 'dotted';
+    borderColor: string;
+    partColor: string;
 }
