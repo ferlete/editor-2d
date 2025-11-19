@@ -71,6 +71,12 @@ interface ShapeDrawerProps {
   material: IMaterial;
 }
 
+type DrawableShape = Shape & {
+    borderType: 'linear' | 'dotted';
+    borderColor: string;
+    partColor: string;
+};
+
 type Interaction =
     | { type: 'drag'; id: number; offset: Vector }
     | { type: 'rotate'; id: number; startAngle: number; initialRotation: number }
@@ -81,12 +87,12 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
   const planeWidth = material.width;
   const planeHeight = material.height;
 
-  const [shapes, setShapes] = useState<Shape[]>([]);
+  const [shapes, setShapes] = useState<DrawableShape[]>([]);
   const [projectParts, setProjectParts] = useState<IProjectPart[]>([]);
   const [isLoadingParts, setIsLoadingParts] = useState(true);
   const [collisionMargin, setCollisionMargin] = useState(5); // Margem de 5mm por padrão
   const [interaction, setInteraction] = useState<Interaction>(null);
-  const [history, setHistory] = useState<Shape[][]>([[]]);
+  const [history, setHistory] = useState<DrawableShape[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -109,7 +115,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
     .finally(() => setIsLoadingParts(false));
   }, []);
 
-  const commitHistory = (newShapes: Shape[]) => {
+  const commitHistory = (newShapes: DrawableShape[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
     setHistory([...newHistory, newShapes]);
     setHistoryIndex(newHistory.length);
@@ -118,11 +124,13 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
   const handleAddPartFromProject = (partToAdd: IProjectPart) => {
     if (partToAdd.quantity <= 0) return;
 
-    const newShapeInstance: Shape = {
+    const newShapeInstance: DrawableShape = {
       ...partToAdd.shape,
-      // eslint-disable-next-line react-hooks/purity
       id: Date.now(), // Unique ID for this instance on canvas
       position: {x: planeWidth / 2, y: planeHeight / 2}, // Posição inicial centralizada
+      borderType: partToAdd.borderType,
+      borderColor: partToAdd.borderColor,
+      partColor: partToAdd.partColor,
     };
     const updatedShapes = [...shapes, newShapeInstance];
     setShapes(updatedShapes);
@@ -151,7 +159,7 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
     }
   };
 
-  const onPointerDown = (e: React.PointerEvent<SVGElement>, shape: Shape) => {
+  const onPointerDown = (e: React.PointerEvent<SVGElement>, shape: DrawableShape) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     const svgRect = svgRef.current?.getBoundingClientRect();
@@ -346,8 +354,8 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        onPointerDown={e => onPointerDown(e, shape)}
                        className={isInteracting ? 'cursor-grabbing' : 'cursor-grab'}>
                       {/* Peça real */}
-                      <polygon points={points} className="stroke-black" strokeWidth={2}
-                               fill={isInteracting ? "#8ec5fc" : "#a0c4ff88"}/>
+                      <polygon points={points} stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
+                               fill={isInteracting ? "#8ec5fc" : shape.partColor}/>
                     </g>
                 );
               } else if (shape.type === 'circle') {
@@ -358,8 +366,8 @@ const ShapeDrawer: React.FC<ShapeDrawerProps> = ({material}) => {
                        onPointerDown={e => onPointerDown(e, shape)}
                        className={isInteracting ? 'cursor-grabbing' : 'cursor-grab'}>
                       {/* Peça real */}
-                      <circle cx={0} cy={0} r={radius} className="stroke-black" strokeWidth={2}
-                              fill={isInteracting ? "#8ec5fc" : "#a0c4ff88"}/>
+                      <circle cx={0} cy={0} r={radius} stroke={shape.borderColor} strokeDasharray={shape.borderType === 'dotted' ? '5,5' : 'none'} strokeWidth={2}
+                              fill={isInteracting ? "#8ec5fc" : shape.partColor}/>
                     </g>
                 );
               }
