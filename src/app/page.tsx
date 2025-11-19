@@ -9,6 +9,7 @@ import {ProjectPartService} from "@/services/project-parts/ProjectPartService";
 import {useIsMounted} from "@/hooks/useIsMounted";
 import AddMaterialModal from "@/components/AddMaterialModal";
 import AddPartModal from "@/components/AddPartModal";
+import UploadCsvModal from "@/components/UploadCsvModal";
 
 export default function Home() {
   const isMounted = useIsMounted();
@@ -18,6 +19,7 @@ export default function Home() {
   const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
   const [isPartModalOpen, setIsPartModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -51,6 +53,22 @@ export default function Home() {
       setProjectParts(updatedParts);
     }
     setIsPartModalOpen(false);
+  };
+
+  const handleUploadCsv = async () => {
+    // Simulate parsing a CSV file
+    const csvData = [
+      { name: 'Fundo de Armário - importado', quantity: 2 },
+      { name: 'Tampo de Mesa - importado', quantity: 1 },
+    ];
+    await ProjectPartService.addFromCsv(csvData);
+    const updatedParts = await ProjectPartService.getAll();
+    if (!(updatedParts instanceof Error)) {
+      setProjectParts(updatedParts);
+    }
+    setIsUploadModalOpen(false);
+    // Mostrar notificação de sucesso por alguns segundos
+    setToastMessage('Upload realizado com sucesso');
   };
   if (!isMounted || isLoading) {
     return (
@@ -150,7 +168,12 @@ export default function Home() {
                 </h1>
               </div>
               <div className="flex items-center gap-4">
-
+                <button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-700"
+                >
+                  Upload CSV
+                </button>
                 <button
                     onClick={() => setIsPartModalOpen(true)}
                     className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
@@ -194,7 +217,12 @@ export default function Home() {
                 onSave={handleAddPart}
             />
         )}
-
+        {isUploadModalOpen && (
+            <UploadCsvModal
+                onClose={() => setIsUploadModalOpen(false)}
+                onUpload={handleUploadCsv}
+            />
+        )}
         {toastMessage && (
             <div className="fixed right-6 top-6 z-50">
               <div className="rounded-md bg-green-600 px-4 py-2 text-white shadow-md">
