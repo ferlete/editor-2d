@@ -44,6 +44,7 @@ export default function Home() {
     const newMaterial = await MaterialService.add(newMaterialData);
     setMaterials((prevMaterials) => [...prevMaterials, newMaterial]);
     setIsMaterialModalOpen(false);
+    setToastMessage('Material adicionado com sucesso');
   };
 
   const handleAddPart = async (name: string, quantity: number) => {
@@ -53,6 +54,7 @@ export default function Home() {
       setProjectParts(updatedParts);
     }
     setIsPartModalOpen(false);
+    setToastMessage('Peça adicionada com sucesso');
   };
 
   const handleUploadCsv = async () => {
@@ -70,6 +72,14 @@ export default function Home() {
     // Mostrar notificação de sucesso por alguns segundos
     setToastMessage('Upload realizado com sucesso');
   };
+
+  // Limpa a mensagem de toast automaticamente após 3 segundos
+  useEffect(() => {
+    if (!toastMessage) return;
+    const id = setTimeout(() => setToastMessage(null), 3000);
+    return () => clearTimeout(id);
+  }, [toastMessage]);
+
   if (!isMounted || isLoading) {
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100">
